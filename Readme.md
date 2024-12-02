@@ -11,9 +11,9 @@ To run the code locally, follow these steps:
 1. **Clone the repository**:
 
    ```sh
-   git clone https://github.com/Tibz-Dankan/Bitcoin-Economy-Simulator
+   git clone https://github.com/Tibz-Dankan/crypto-tennis
 
-   cd Bitcoin-Economy-Simulator
+   cd crypto-tennis
    ```
 
 1. **Install dependencies**:
