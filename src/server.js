@@ -4,6 +4,9 @@ const { createServer } = require("http");
 const { Server } = require("socket.io");
 const dotenv = require("dotenv");
 const { sockEvents } = require("./socket");
+const logger = require("morgan");
+const cors = require("cors");
+const keepActiveRoute = require("./activeRoute");
 
 const typeDefs = gql`
   type Query {
@@ -116,12 +119,27 @@ const resolvers = {
 
 const startServer = async () => {
   const app = express();
+  app.use(logger("dev"));
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+  app.use(keepActiveRoute);
 
   dotenv.config();
+
+  let allowOrigin;
+
+  if (process.env.NODE_ENV === "production") {
+    app.use(cors({ origin: "*" }));
+    allowOrigin = "https://crypto-tennis.netlify.app";
+  } else {
+    app.use(cors());
+    allowOrigin = "http://localhost:8080";
+  }
+
   const httpServer = createServer(app);
   const io = new Server(httpServer, {
     cors: {
-      origin: "http://localhost:8080",
+      origin: allowOrigin,
       methods: ["GET", "POST"],
     },
   });

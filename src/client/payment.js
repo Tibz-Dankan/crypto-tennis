@@ -17,7 +17,7 @@ mutation LnAddressPaymentSend($input: LnAddressPaymentSendInput!) {
 const variables = {
   input: {
     // amount: 100,
-    amount: 10,
+    amount: 5,
     walletId: "fe20ccad-4c7e-4652-8e3c-af3dc5234009",
     lnAddress: "mmak3n@blink.sv",
   },
