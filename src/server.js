@@ -3,6 +3,7 @@ const { ApolloServer, gql } = require("apollo-server-express");
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 const dotenv = require("dotenv");
+const { sockEvents } = require("./socket");
 
 const typeDefs = gql`
   type Query {
@@ -117,15 +118,15 @@ const startServer = async () => {
   const app = express();
 
   dotenv.config();
-  //   const httpServer = createServer();
   const httpServer = createServer(app);
   const io = new Server(httpServer, {
-    // options
+    cors: {
+      origin: "http://localhost:8080",
+      methods: ["GET", "POST"],
+    },
   });
 
-  io.on("connection", (socket) => {
-    // ...
-  });
+  sockEvents(io);
 
   const server = new ApolloServer({ typeDefs, resolvers });
   await server.start();
