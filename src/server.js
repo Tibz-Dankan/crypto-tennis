@@ -8,36 +8,58 @@ const logger = require("morgan");
 const cors = require("cors");
 const keepActiveRoute = require("./activeRoute");
 
+dotenv.config();
+
 const typeDefs = gql`
   type Query {
+    me: User
     hello: String
+  }
+
+  type User {
+    id: ID!
+    defaultAccount: Account
+  }
+
+  type Account {
+    transactions(
+      walletIds: [String]
+      last: Int
+      after: String
+    ): TransactionsPayload
+  }
+
+  type TransactionsPayload {
+    pageInfo: PageInfo
+    edges: [TransactionEdge]
+  }
+
+  type PageInfo {
+    endCursor: String
+    hasNextPage: Boolean
+  }
+
+  type TransactionEdge {
+    cursor: String
+    node: Transaction
+  }
+
+  type Transaction {
+    direction: String
+    settlementCurrency: String
+    settlementDisplayAmount: Float
+    status: String
+    createdAt: String
   }
 
   type Mutation {
     lnAddressPaymentSend(input: LnAddressPaymentSendInput!): PaymentResponse
   }
 
-  type Mutation {
-    onChainAddressCurrent(
-      input: OnChainAddressCurrentInput!
-    ): OnChainAddressPayload
-  }
-
   input LnAddressPaymentSendInput {
     amount: Int!
     lnAddress: String!
     walletId: String!
-  }
-
-  input OnChainAddressCurrentInput {
-    amount: Int!
-    onChainAddress: String!
-    btcWalletId: String!
-  }
-
-  type OnChainAddressPayload {
-    address: String
-    errors: [Error]
   }
 
   type PaymentResponse {
@@ -55,6 +77,79 @@ const typeDefs = gql`
 const resolvers = {
   Query: {
     hello: () => "Hello world!",
+    me: async () => {
+      const url = "https://api.blink.sv/graphql";
+      const token = process.env.API_TOKEN;
+      const userId = "user-123"; //TODO: to replace it with the actual id
+      return {
+        id: userId,
+        defaultAccount: {
+          transactions: async (_, args) => {
+            const query = `
+              query me($walletIds: [String], $last: Int, $after: String) {
+                me {
+                  id
+                  defaultAccount {
+                    transactions(walletIds: $walletIds, last: $last, after: $after) {
+                      pageInfo {
+                        endCursor
+                        hasNextPage
+                      }
+                      edges {
+                        cursor
+                        node {
+                          direction
+                          settlementCurrency
+                          settlementDisplayAmount
+                          status
+                          createdAt
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            `;
+
+            const variables = {
+              walletIds: args.walletIds,
+              last: args.last || 10,
+              after: args.after || null,
+            };
+
+            try {
+              const response = await fetch(url, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  // Authorization: `Bearer ${token}`,
+                  "X-API-KEY": `${token}`,
+                },
+                body: JSON.stringify({
+                  query: query,
+                  variables: variables,
+                }),
+              });
+
+              // const data = await response.json();
+
+              console.log("transaction query response:", response);
+
+              // if (data.errors) {
+              //   console.error("GraphQL Errors:", data.errors);
+              //   return null;
+              // }
+
+              // const transactions = data.data.me.defaultAccount.transactions;
+              // return transactions;
+            } catch (error) {
+              console.error("Network or Fetch Error:", error);
+              // return null;
+            }
+          },
+        },
+      };
+    },
   },
   Mutation: {
     lnAddressPaymentSend: async (_, { input }) => {
@@ -89,10 +184,7 @@ const resolvers = {
           }),
         });
 
-        console.log("status", response.status);
-
         const text = await response.text();
-        console.log("response text:", text);
         const data = JSON.parse(text);
 
         if (response.ok) {
