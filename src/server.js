@@ -22,11 +22,7 @@ const typeDefs = gql`
   }
 
   type Account {
-    transactions(
-      walletIds: [String]
-      last: Int
-      after: String
-    ): TransactionsPayload
+    transactions(first: Int): TransactionsPayload
   }
 
   type TransactionsPayload {
@@ -47,7 +43,8 @@ const typeDefs = gql`
   type Transaction {
     direction: String
     settlementCurrency: String
-    settlementDisplayAmount: Float
+    settlementAmount: Int
+    settlementDisplayAmount: String
     status: String
     createdAt: String
   }
@@ -80,17 +77,16 @@ const resolvers = {
     me: async () => {
       const url = "https://api.blink.sv/graphql";
       const token = process.env.API_TOKEN;
-      const userId = "user-123"; //TODO: to replace it with the actual id
       return {
-        id: userId,
+        id: process.env.MMAKEN_ACCOUNT_ID,
         defaultAccount: {
           transactions: async (_, args) => {
             const query = `
-              query me($walletIds: [String], $last: Int, $after: String) {
+              query me($first: Int) {
                 me {
                   id
                   defaultAccount {
-                    transactions(walletIds: $walletIds, last: $last, after: $after) {
+                    transactions(first: $first) {
                       pageInfo {
                         endCursor
                         hasNextPage
@@ -100,6 +96,7 @@ const resolvers = {
                         node {
                           direction
                           settlementCurrency
+                          settlementAmount
                           settlementDisplayAmount
                           status
                           createdAt
@@ -112,17 +109,16 @@ const resolvers = {
             `;
 
             const variables = {
-              walletIds: args.walletIds,
-              last: args.last || 10,
-              after: args.after || null,
+              first: args.first || 15,
             };
 
             try {
+              console.log("args", args);
+              console.log("variables", variables);
               const response = await fetch(url, {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
-                  // Authorization: `Bearer ${token}`,
                   "X-API-KEY": `${token}`,
                 },
                 body: JSON.stringify({
@@ -131,20 +127,21 @@ const resolvers = {
                 }),
               });
 
-              // const data = await response.json();
+              const data = await response.json();
 
               console.log("transaction query response:", response);
 
-              // if (data.errors) {
-              //   console.error("GraphQL Errors:", data.errors);
-              //   return null;
-              // }
+              if (data.errors) {
+                console.error("GraphQL Errors:", data.errors);
+                return null;
+              }
 
-              // const transactions = data.data.me.defaultAccount.transactions;
-              // return transactions;
+              const transactions = data.data.me.defaultAccount.transactions;
+              console.log("transactions:", transactions);
+              return transactions;
             } catch (error) {
               console.error("Network or Fetch Error:", error);
-              // return null;
+              return null;
             }
           },
         },
