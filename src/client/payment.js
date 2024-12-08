@@ -23,7 +23,7 @@ const makeLnPayment = () => {
     },
   };
 
-  fetch(url, {
+  const fetchResponse = fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -40,19 +40,23 @@ const makeLnPayment = () => {
 
       if (data.errors) {
         console.error("GraphQL Errors:", data.errors);
-        return;
+        return { status: "ERROR" };
       }
 
       const paymentSendResult = data.data.lnAddressPaymentSend;
       if (paymentSendResult.status === "SUCCESS") {
         console.log("Payment sent successfully!");
+        return { status: "SUCCESS" };
       } else {
         console.error("Failed to send payment:", paymentSendResult.errors);
+        return { status: "ERROR" };
       }
     })
     .catch((error) => {
       console.error("Network or Fetch Error:", error);
     });
+
+  return fetchResponse;
 };
 
 const fetchTransactionsForAccount = () => {
@@ -87,7 +91,7 @@ const fetchTransactionsForAccount = () => {
     first: 15,
   };
 
-  fetch(url, {
+  const fetchResponse = fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -100,19 +104,23 @@ const fetchTransactionsForAccount = () => {
   })
     .then((response) => response.json())
     .then((data) => {
-      console.log("Parsed Data:", data);
+      // console.log("Parsed Data:", data);
 
       if (data.errors) {
         console.error("GraphQL Errors:", data.errors);
-        return;
+        return { status: "ERROR", errors: data.errors };
       }
 
       const transactions = data.data.me.defaultAccount.transactions;
       console.log("Transactions:", transactions);
+      return { status: "SUCCESS", transactions: transactions };
     })
     .catch((error) => {
       console.error("Network or Fetch Error:", error);
+      return { status: "ERROR", errors: error };
     });
+
+  return fetchResponse;
 };
 
 module.exports = { makeLnPayment, fetchTransactionsForAccount };

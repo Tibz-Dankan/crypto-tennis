@@ -1,4 +1,7 @@
-const { makeLnPayment } = require("../client/payment");
+const {
+  makeLnPayment,
+  fetchTransactionsForAccount,
+} = require("../client/payment");
 
 const sockEvents = (io) => {
   io.on("connection", (socket) => {
@@ -6,7 +9,18 @@ const sockEvents = (io) => {
 
     socket.on("gameWinner", ({ winner }) => {
       console.log(`gameWinner: ${winner}`);
-      makeLnPayment();
+
+      const paymentSynchronizer = async () => {
+        const paymentStatus = await makeLnPayment();
+        if (paymentStatus.status === "SUCCESS") {
+          const transactionFetch = await fetchTransactionsForAccount();
+          if (transactionFetch.status === "SUCCESS") {
+            console.log("Transactions fetched successfully!");
+            socket.emit("transactions", transactionFetch.transactions);
+          }
+        }
+      };
+      paymentSynchronizer();
     });
 
     socket.on("disconnect", () => {
