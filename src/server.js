@@ -113,8 +113,6 @@ const resolvers = {
             };
 
             try {
-              console.log("args", args);
-              console.log("variables", variables);
               const response = await fetch(url, {
                 method: "POST",
                 headers: {
@@ -129,15 +127,12 @@ const resolvers = {
 
               const data = await response.json();
 
-              console.log("transaction query response:", response);
-
               if (data.errors) {
                 console.error("GraphQL Errors:", data.errors);
                 return null;
               }
 
               const transactions = data.data.me.defaultAccount.transactions;
-              console.log("transactions:", transactions);
               return transactions;
             } catch (error) {
               console.error("Network or Fetch Error:", error);
