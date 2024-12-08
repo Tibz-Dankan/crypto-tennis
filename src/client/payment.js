@@ -17,7 +17,6 @@ const makeLnPayment = () => {
 
   const variables = {
     input: {
-      // amount: 100,
       amount: 5,
       walletId: "fe20ccad-4c7e-4652-8e3c-af3dc5234009",
       lnAddress: "mmak3n@blink.sv",
@@ -58,11 +57,11 @@ const makeLnPayment = () => {
 
 const fetchTransactionsForAccount = () => {
   const query = `
-    query transactionsForAccount($walletIds: [String], $last: Int, $after: String) {
+    query transactionsForAccount($first: Int) {
       me {
         id
         defaultAccount {
-          transactions(walletIds: $walletIds, last: $last, after: $after) {
+          transactions(first: $first) {
             pageInfo {
               endCursor
               hasNextPage
@@ -72,6 +71,7 @@ const fetchTransactionsForAccount = () => {
               node {
                 direction
                 settlementCurrency
+                settlementAmount
                 settlementDisplayAmount
                 status
                 createdAt
@@ -84,9 +84,7 @@ const fetchTransactionsForAccount = () => {
   `;
 
   const variables = {
-    walletIds: ["fe20ccad-4c7e-4652-8e3c-af3dc5234009"],
-    last: 10,
-    after: null,
+    first: 15,
   };
 
   fetch(url, {
