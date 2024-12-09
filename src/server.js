@@ -76,7 +76,7 @@ const resolvers = {
     hello: () => "Hello world!",
     me: async () => {
       const url = "https://api.blink.sv/graphql";
-      const token = process.env.API_TOKEN;
+      const token = process.env.MMAK3N_API_TOKEN;
       return {
         id: process.env.MMAKEN_ACCOUNT_ID,
         defaultAccount: {
@@ -146,7 +146,7 @@ const resolvers = {
   Mutation: {
     lnAddressPaymentSend: async (_, { input }) => {
       const url = "https://api.blink.sv/graphql";
-      const token = process.env.API_TOKEN;
+      const token = process.env.MMAKEN_API_TOKEN;
 
       const mutation = `
         mutation LnAddressPaymentSend($input: LnAddressPaymentSendInput!) {
