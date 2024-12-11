@@ -6,7 +6,9 @@ const dotenv = require("dotenv");
 const { sockEvents } = require("./socket");
 const logger = require("morgan");
 const cors = require("cors");
-const keepActiveRoute = require("./activeRoute");
+const keepActiveRoute = require("./routes/activeRoute");
+const convertRoute = require("./routes/convertRoute");
+const { errorHandler } = require("./utils/errorHandler");
 
 dotenv.config();
 
@@ -207,6 +209,9 @@ const startServer = async () => {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
   app.use(keepActiveRoute);
+  app.use("/api/v1", convertRoute);
+
+  app.use(errorHandler);
 
   dotenv.config();
 
