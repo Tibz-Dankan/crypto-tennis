@@ -214,7 +214,7 @@ const startServer = async () => {
 
   if (process.env.NODE_ENV === "production") {
     app.use(cors({ origin: "*" }));
-    allowOrigin = "https://crypto-tennis.netlify.app";
+    allowOrigin = "https://bitcoin-tennis.netlify.app";
   } else {
     app.use(cors());
     allowOrigin = "http://localhost:8080";
