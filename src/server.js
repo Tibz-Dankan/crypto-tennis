@@ -208,27 +208,34 @@ const startServer = async () => {
   app.use(logger("dev"));
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+
+  const isProduction = process.env.NODE_ENV === "production";
+  app.use(
+    cors({
+      origin: isProduction
+        ? [
+            "https://bitcoin-tennis.netlify.app",
+            "https://rootstock-o-level-math.netlify.app",
+          ]
+        : ["http://localhost:8080", "http://localhost:5173"],
+      methods: ["GET", "POST", "PUT", "DELETE"],
+    })
+  );
+
   app.use(keepActiveRoute);
   app.use("/api/v1", convertRoute);
 
   app.use(errorHandler);
 
-  dotenv.config();
-
-  let allowOrigin;
-
-  if (process.env.NODE_ENV === "production") {
-    app.use(cors({ origin: "*" }));
-    allowOrigin = "https://bitcoin-tennis.netlify.app";
-  } else {
-    app.use(cors());
-    allowOrigin = "http://localhost:8080";
-  }
-
   const httpServer = createServer(app);
   const io = new Server(httpServer, {
     cors: {
-      origin: allowOrigin,
+      origin: isProduction
+        ? [
+            "https://bitcoin-tennis.netlify.app",
+            "https://rootstock-o-level-math.netlify.app",
+          ]
+        : ["http://localhost:8080", "http://localhost:5173"],
       methods: ["GET", "POST"],
     },
   });
